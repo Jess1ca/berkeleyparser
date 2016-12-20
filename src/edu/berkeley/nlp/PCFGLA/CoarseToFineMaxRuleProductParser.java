@@ -3,6 +3,7 @@ package edu.berkeley.nlp.PCFGLA;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -244,7 +245,7 @@ public class CoarseToFineMaxRuleProductParser extends CoarseToFineMaxRuleParser 
 
 	@Override
 	void doConstrainedInsideScores(Grammar grammar, boolean viterbi,
-			boolean logScores) {
+			boolean logScores, PrintWriter outputData) {
 		if (!viterbi && logScores)
 			throw new Error(
 					"This would require logAdds and is slow. Exponentiate the scores instead.");
@@ -1125,7 +1126,7 @@ public class CoarseToFineMaxRuleProductParser extends CoarseToFineMaxRuleParser 
 							level == startLevel);
 					score = viScore[0][length][0];
 				} else {
-					doConstrainedInsideScores(curGrammar, viterbi, logScores);
+					doConstrainedInsideScores(curGrammar, viterbi, logScores, null);
 					score = iScore[0][length][0][0];
 				}
 
@@ -1157,7 +1158,7 @@ public class CoarseToFineMaxRuleProductParser extends CoarseToFineMaxRuleParser 
 			createArrays(false, curGrammar.numStates, curGrammar.numSubStates,
 					level, initVal, false, nGr);
 			initializeChart(sentence, curLexicon, false, false, posTags, false);
-			doConstrainedInsideScores(curGrammar, viterbiParse, viterbiParse);
+			doConstrainedInsideScores(curGrammar, viterbiParse, viterbiParse, null);
 
 			score = iScore[0][length][0][0];
 			if (!viterbiParse)
@@ -1259,7 +1260,7 @@ public class CoarseToFineMaxRuleProductParser extends CoarseToFineMaxRuleParser 
 
 	@Override
 	public Tree<String> getBestParse(List<String> sentence) {
-		return getBestConstrainedParse(sentence, null, false);
+		return getBestConstrainedParse(sentence, null, false, null, false);
 	}
 
 	@Override
@@ -1308,7 +1309,7 @@ public class CoarseToFineMaxRuleProductParser extends CoarseToFineMaxRuleParser 
 
 	@Override
 	public Tree<String> getBestConstrainedParse(List<String> sentence,
-			List<String> posTags, boolean noPreparse) {
+			List<String> posTags, boolean noPreparse, PrintWriter outputData, boolean ioprobs) {
 		if (sentence.size() == 0)
 			return new Tree<String>("ROOT");
 		if (!noPreparse)

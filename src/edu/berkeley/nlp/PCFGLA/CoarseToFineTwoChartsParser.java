@@ -3,6 +3,7 @@
  */
 package edu.berkeley.nlp.PCFGLA;
 
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,7 +42,7 @@ public class CoarseToFineTwoChartsParser extends CoarseToFineMaxRuleParser {
 
 	@Override
 	void doConstrainedInsideScores(Grammar grammar, boolean viterbi,
-			boolean logScores) {
+			boolean logScores, PrintWriter outputData) {
 		if (!viterbi && logScores)
 			throw new Error(
 					"This would require logAdds and is slow. Exponentiate the scores instead.");
@@ -902,7 +903,7 @@ public class CoarseToFineTwoChartsParser extends CoarseToFineMaxRuleParser {
 						level == startLevel);
 				score = viScore[0][length][0];
 			} else {
-				doConstrainedInsideScores(curGrammar, viterbi, logScores);
+				doConstrainedInsideScores(curGrammar, viterbi, logScores, null);
 				score = iScorePostU[0][length][0][0];
 			}
 
@@ -947,7 +948,7 @@ public class CoarseToFineTwoChartsParser extends CoarseToFineMaxRuleParser {
 
 		initializeChart(sentence, curLexicon, false, false);
 
-		doConstrainedInsideScores(curGrammar, viterbiParse, false);
+		doConstrainedInsideScores(curGrammar, viterbiParse, false, null);
 		score = iScorePostU[0][length][0][0];
 
 		if (!viterbiParse)
@@ -1323,7 +1324,7 @@ public class CoarseToFineTwoChartsParser extends CoarseToFineMaxRuleParser {
 				level, initVal, false/* !isBaseline */); // remove false
 
 		initializeChart(sentence, curLexicon, false, noSmoothing);
-		doConstrainedInsideScores(curGrammar, false, false);
+		doConstrainedInsideScores(curGrammar, false, false, null);
 		logLikelihood = Math.log(iScorePostU[0][length][0][0]); // +
 																// (100*iScale[0][length][0]);
 
@@ -1352,7 +1353,7 @@ public class CoarseToFineTwoChartsParser extends CoarseToFineMaxRuleParser {
 				level, initVal, false/* !isBaseline */); // remove false
 
 		initializeChart(sentence, curLexicon, false, noSmoothing);
-		doConstrainedInsideScores(curGrammar, false, false);
+		doConstrainedInsideScores(curGrammar, false, false, null);
 		logLikelihood = Math.log(iScorePostU[0][length][0][0]); // +
 																// (100*iScale[0][length][0]);
 

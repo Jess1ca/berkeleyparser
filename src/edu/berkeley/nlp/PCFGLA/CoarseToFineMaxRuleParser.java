@@ -15,6 +15,10 @@ import edu.berkeley.nlp.util.ArrayUtil;
 import edu.berkeley.nlp.util.Numberer;
 import edu.berkeley.nlp.util.ScalingTools;
 
+import java.io.PrintWriter;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * 
  * @author Slav Petrov
@@ -217,7 +221,7 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 	}
 
 	void doConstrainedInsideScores(Grammar grammar, boolean viterbi,
-			boolean logScores) {
+			boolean logScores, PrintWriter outputData) {
 		if (!viterbi && logScores)
 			throw new Error(
 					"This would require logAdds and is slow. Exponentiate the scores instead.");
@@ -1069,7 +1073,7 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 						level == startLevel);
 				score = viScore[0][length][0];
 			} else {
-				doConstrainedInsideScores(curGrammar, viterbi, logScores);
+				doConstrainedInsideScores(curGrammar, viterbi, logScores, null);
 				score = iScore[0][length][0][0];
 			}
 
@@ -1152,7 +1156,7 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 
 	@Override
 	public Tree<String> getBestParse(List<String> sentence) {
-		return getBestConstrainedParse(sentence, null, false);
+		return getBestConstrainedParse(sentence, null, false, null, false);
 	}
 
 	public double getLogInsideScore() {
@@ -1161,10 +1165,10 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 
 	@Override
 	public Tree<String> getBestConstrainedParse(List<String> sentence,
-			List<String> posTags, boolean[][][][] allowedS) {// List<Integer>[][]
+			List<String> posTags, boolean[][][][] allowedS, PrintWriter outputData, boolean ioprobs) {// List<Integer>[][]
 																// pStates) {
 		if (allowedS == null)
-			return getBestConstrainedParse(sentence, posTags, false);
+			return getBestConstrainedParse(sentence, posTags, false, outputData ,ioprobs);
 		clearArrays();
 		length = (short) sentence.size();
 		Grammar curGrammar = grammarCascade[endLevel - startLevel + 1];
@@ -1175,7 +1179,7 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 		createArrays(true, curGrammar.numStates, curGrammar.numSubStates,
 				level, initVal, false);
 		setConstraints(allowedS);
-		return getBestConstrainedParse(sentence, posTags, true);
+		return getBestConstrainedParse(sentence, posTags, true, outputData ,ioprobs);
 	}
 
 	/**
@@ -1203,7 +1207,7 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 	}
 
 	public Tree<String> getBestConstrainedParse(List<String> sentence,
-			List<String> posTags, boolean noPreparse) {
+			List<String> posTags, boolean noPreparse, PrintWriter outputData, boolean ioprobs) {
 		if (sentence.size() == 0)
 			return new Tree<String>("ROOT");
 		if (!noPreparse)
@@ -1219,7 +1223,7 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 		createArrays(false, curGrammar.numStates, curGrammar.numSubStates,
 				level, initVal, false);
 		initializeChart(sentence, curLexicon, false, false, posTags, false);
-		doConstrainedInsideScores(curGrammar, viterbiParse, viterbiParse);
+		doConstrainedInsideScores(curGrammar, viterbiParse, viterbiParse, outputData);
 
 		score = iScore[0][length][0][0];
 		if (!viterbiParse)
@@ -1252,6 +1256,66 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 			if (!viterbiParse)
 				score = Math.log(score);// + (100*iScale[0][length][0]);
 		}
+
+		if (ioprobs) {
+            Numberer n = Numberer.getGlobalNumberer("tags");
+            short[] numSubStatesArray = curGrammar.numSubStates;
+
+            double[][][][] _iScore = new double[length][length + 1][][];
+            double[][][][] _oScore = new double[length][length + 1][][];
+            for (int start = 0; start < length; start++) {
+                for (int end = start + 1; end <= length; end++) {
+                    _iScore[start][end] = new double[numStates][];
+                    _oScore[start][end] = new double[numStates][];
+                }
+            }
+            for (int start = 0; start < length; start++) {
+                for (int end = start + 1; end <= length; end++) {
+                    for (int state = 0; state < numStates; state++) {
+                        _iScore[start][end][state] = new double[numSubStatesArray[state]];
+                        _oScore[start][end][state] = new double[numSubStatesArray[state]];
+                        Arrays.fill(_oScore[start][end][state],
+                                0);
+                        Arrays.fill(_iScore[start][end][state],
+                                0);
+                    }
+                }
+            }
+            outputData.write("PROB-START\n");
+            for (int start = 0; start < length; start++) {
+                for (int end = start + 1; end <= length; end++) {
+                    Double totalPinside = 0.0;
+                    Double totalPoutside = 0.0;
+                    for (int state = 0; state < numStates; state++) {
+                        for (int i = 0; i < numSubStatesArray[state]; i++) {
+                            if (iScore[start][end][state] != null)
+                                _iScore[start][end][state][i] = iScore[start][end][state][i];
+                            if (oScore[start][end][state] != null)
+                                _oScore[start][end][state][i] = oScore[start][end][state][i];
+                            String stateStr = (String) n.object(state);
+                            if (stateStr.endsWith("^g"))
+                                stateStr = stateStr.substring(0, stateStr.length() - 2);
+                            if (_iScore[start][end][state][i] != 0.0 || _oScore[start][end][state][i] != 0.0) {
+                                JSONObject obj = new JSONObject();
+                                try {
+                                    obj.append("I", _iScore[start][end][state][i]);
+                                    obj.append("O", _oScore[start][end][state][i]);
+                                    obj.append("start", start);
+                                    obj.append("end", end);
+                                    obj.append("state", state);
+                                    obj.append("substate", i);
+                                    obj.append("stateStr", stateStr);
+                                    obj.append("IO", _iScore[start][end][state][i] * _oScore[start][end][state][i]);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                outputData.write(obj + "\n");
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
 		grammar = curGrammar;
 		lexicon = curLexicon;
@@ -2627,7 +2691,7 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 						level == startLevel);
 				score = viScore[0][length][0];
 			} else {
-				doConstrainedInsideScores(curGrammar, viterbi, logScores);
+				doConstrainedInsideScores(curGrammar, viterbi, logScores, null);
 				score = iScore[0][length][0][0];
 			}
 			if (score == Double.NEGATIVE_INFINITY)

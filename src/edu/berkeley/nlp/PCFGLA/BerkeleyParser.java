@@ -38,6 +38,9 @@ public class BerkeleyParser {
 		@Option(name = "-gr", required = true, usage = "Grammarfile (Required)\n")
 		public String grFileName;
 
+		@Option(name = "-ioprobs",  usage = "\n")
+        public boolean ioprobs = false;
+
 		@Option(name = "-tokenize", usage = "Tokenize input first. (Default: false=text is already tokenized)")
 		public boolean tokenize = false;
 
@@ -256,22 +259,22 @@ public class BerkeleyParser {
 						parsedTrees = new ArrayList<Tree<String>>();
 						Tree<String> parsedTree = parser
 								.getBestConstrainedParse(sentence, posTags,
-										null);
-						if (opts.goldPOS && parsedTree.getChildren().isEmpty()) { // parse
-																					// error
-																					// when
-																					// using
-																					// goldPOS,
-																					// try
-																					// without
-							parsedTree = parser.getBestConstrainedParse(
-									sentence, null, null);
-						}
+										null, outputData, opts.ioprobs);
+//						if (opts.goldPOS && parsedTree.getChildren().isEmpty()) { // parse
+//																					// error
+//																					// when
+//																					// using
+//																					// goldPOS,
+//																					// try
+//																					// without
+//							parsedTree = parser.getBestConstrainedParse(
+//									sentence, null, null);
+//						}
 						parsedTrees.add(parsedTree);
 
 					}
-					outputTrees(parsedTrees, outputData, parser, opts, line,
-							sentenceID);
+//					outputTrees(parsedTrees, outputData, parser, opts, line,
+//							sentenceID);
 				}
 			}
 			if (opts.nThreads > 1) {

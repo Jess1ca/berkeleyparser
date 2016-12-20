@@ -672,7 +672,7 @@ public class CoarseToFineNBestParser extends CoarseToFineMaxRuleParser {
 			createArrays(false, curGrammar.numStates, curGrammar.numSubStates,
 					level, initVal, false);
 			initializeChart(sentence, curLexicon, false, false, posTags, false);
-			doConstrainedInsideScores(curGrammar, viterbiParse, viterbiParse);
+			doConstrainedInsideScores(curGrammar, viterbiParse, viterbiParse, null);
 
 			score = iScore[0][length][0][0];
 			if (!viterbiParse)

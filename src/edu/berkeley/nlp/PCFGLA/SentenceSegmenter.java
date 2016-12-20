@@ -130,7 +130,7 @@ public class SentenceSegmenter {
 				}// break;
 
 				Tree<String> parsedTree = parser.getBestConstrainedParse(
-						sentence, posTags, null);
+						sentence, posTags, null, null, false);
 				double allLL = (parsedTree.getChildren().isEmpty()) ? Double.NEGATIVE_INFINITY
 						: parser.getLogLikelihood();
 				outputData.write(allLL + " ");

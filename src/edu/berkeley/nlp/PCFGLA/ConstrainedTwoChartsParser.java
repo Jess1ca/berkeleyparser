@@ -3,6 +3,7 @@
  */
 package edu.berkeley.nlp.PCFGLA;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -918,7 +919,7 @@ public class ConstrainedTwoChartsParser extends ConstrainedArrayParser {
 
 	@Override
 	public Tree<String> getBestConstrainedParse(List<String> sentence,
-			List<String> posTags, boolean[][][][] allowedStates) {
+			List<String> posTags, boolean[][][][] allowedStates, PrintWriter outputData, boolean ioprobs) {
 		// setConstraints(allowedStates,true);
 
 		boolean noSmoothing = false;

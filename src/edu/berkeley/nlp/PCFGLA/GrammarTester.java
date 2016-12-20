@@ -517,7 +517,7 @@ public class GrammarTester implements Callable {
 						parsedTree = new Tree<String>("ROOT");
 				} else {
 					parsedTree = parser.getBestConstrainedParse(testSentence,
-							posTags, allowedStates);
+							posTags, allowedStates, null, false);
 					if (opts.verbose)
 						System.out.println("Annotated result:\n"
 								+ Trees.PennTreeRenderer.render(parsedTree));
@@ -532,7 +532,7 @@ public class GrammarTester implements Callable {
 																			// try
 																			// without
 						parsedTree = parser.getBestConstrainedParse(
-								testSentence, null, allowedStates);
+								testSentence, null, allowedStates, null, false);
 						parsedTree = TreeAnnotations.unAnnotateTree(parsedTree,
 								false);
 					}
@@ -858,7 +858,7 @@ public class GrammarTester implements Callable {
 			Tree<String> parsedTree = null;
 			boolean[][][][] con = (cons == null) ? null : cons[i];
 			parsedTree = parser
-					.getBestConstrainedParse(testSentence, null, con);
+					.getBestConstrainedParse(testSentence, null, con, null, false);
 			parsedTree = TreeAnnotations.unAnnotateTree(parsedTree, false);
 
 			eval.evaluate(parsedTree, testTree, false);

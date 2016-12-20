@@ -13,6 +13,8 @@ import edu.berkeley.nlp.util.Numberer;
 import edu.berkeley.nlp.util.PriorityQueue;
 import edu.berkeley.nlp.util.StringUtils;
 
+import java.io.PrintWriter;
+
 public class ConstrainedArrayParser extends ArrayParser implements Callable {
 	List<Integer>[][] possibleStates;
 	/** inside scores; start idx, end idx, state -> logProb */
@@ -318,7 +320,7 @@ public class ConstrainedArrayParser extends ArrayParser implements Callable {
 	}
 
 	public Tree<String> getBestConstrainedParse(List<String> sentence,
-			List<String> posTags, boolean[][][][] allowedS) {// List<Integer>[][]
+			List<String> posTags, boolean[][][][] allowedS, PrintWriter outputData, boolean ioprobs) {// List<Integer>[][]
 																// pStates) {
 		return getBestConstrainedParse(sentence, posTags);
 	}

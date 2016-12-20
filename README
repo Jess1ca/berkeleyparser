@@ -1,3 +1,12 @@
+Description:
+This code changes Berkeley Parser to retrives on parsing the computed Inside-Outside probabilities instead of the highest scored tree.
+The complied jar is in "out" folder.
+
+Command:
+java -classpath .:out/berkeleyparser.jar:org.json-20120521.jar edu.berkeley.nlp.PCFGLA.BerkeleyParser -gr <grammar> -inputFile <sentences> -ioprobs
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 "THE BERKELEY PARSER"
 release 1.1
 migrated from Google Code to GitHub July 2015

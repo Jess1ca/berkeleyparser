@@ -19,6 +19,10 @@ import java.io.PrintWriter;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.File;
+
 /**
  * 
  * @author Slav Petrov
@@ -85,7 +89,9 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 	List<Posterior> posteriorsToDump;
 
 	// double edgesTouched;
-	// int sentencesParsed;
+	int sentencesParsed;
+	ArrayList<ArrayList<Span>> spans ;
+	final String candidates_spans;
 
 	CoarseToFineMaxRuleParser() {
 		grammarTags = null;
@@ -95,12 +101,13 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 		accurate = false;
 		useGoldPOS = false;
 		doVariational = false;
+		candidates_spans = null;
 	}
 
 	public CoarseToFineMaxRuleParser(Grammar gr, Lexicon lex,
 			double unaryPenalty, int endL, boolean viterbi, boolean sub,
 			boolean score, boolean accurate, boolean variational,
-			boolean useGoldPOS, boolean initializeCascade) {
+			boolean useGoldPOS, boolean initializeCascade, String candidates_spans) {
 		grammar = gr;
 		lexicon = lex;
 		// this.numSubStatesArray = gr.numSubStates.clone();
@@ -112,6 +119,8 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 		this.outputSub = sub;
 		this.doVariational = variational;
 		this.useGoldPOS = useGoldPOS;
+
+		this.candidates_spans = candidates_spans;
 
 		totalUsedUnaries = 0;
 		nTimesRestoredUnaries = 0;
@@ -144,7 +153,35 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 
 		if (initializeCascade)
 			initCascade(gr, lex);
+
+		if (candidates_spans!=null) {
+            readSpans(candidates_spans);
+        }
 	}
+
+	public void readSpans(String candidates_spans) {
+        this.spans =  new ArrayList<ArrayList<Span>>();
+        File file = new File(candidates_spans);
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+
+            String line = null;
+
+            while ((line = br.readLine()) != null) {
+                String[] arr = line.split("\t");
+                Span span = new Span(Integer.parseInt(arr[2]),Integer.parseInt(arr[3]));
+                int sent_id = Integer.parseInt(arr[0]);
+                if (sent_id <= this.spans.size()){
+                    this.spans.add(sent_id, new ArrayList<Span>());
+                }
+                this.spans.get(sent_id).add(span);
+            }
+
+            br.close();
+        } catch (IOException name) {
+        }
+    }
 
 	public void initCascade(CoarseToFineMaxRuleParser otherParser) {
 		lChildMap = otherParser.lChildMap;
@@ -1165,10 +1202,10 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 
 	@Override
 	public Tree<String> getBestConstrainedParse(List<String> sentence,
-			List<String> posTags, boolean[][][][] allowedS, PrintWriter outputData, boolean ioprobs) {// List<Integer>[][]
+			List<String> posTags, boolean[][][][] allowedS, PrintWriter outputData, boolean ioprobs, String candidates_spans) {// List<Integer>[][]
 																// pStates) {
 		if (allowedS == null)
-			return getBestConstrainedParse(sentence, posTags, false, outputData ,ioprobs);
+			return getBestConstrainedParse(sentence, posTags, false, outputData ,ioprobs, candidates_spans);
 		clearArrays();
 		length = (short) sentence.size();
 		Grammar curGrammar = grammarCascade[endLevel - startLevel + 1];
@@ -1179,7 +1216,7 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 		createArrays(true, curGrammar.numStates, curGrammar.numSubStates,
 				level, initVal, false);
 		setConstraints(allowedS);
-		return getBestConstrainedParse(sentence, posTags, true, outputData ,ioprobs);
+		return getBestConstrainedParse(sentence, posTags, true, outputData ,ioprobs, candidates_spans);
 	}
 
 	/**
@@ -1207,7 +1244,7 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 	}
 
 	public Tree<String> getBestConstrainedParse(List<String> sentence,
-			List<String> posTags, boolean noPreparse, PrintWriter outputData, boolean ioprobs) {
+			List<String> posTags, boolean noPreparse, PrintWriter outputData, boolean ioprobs, String candidates_spans) {
 		if (sentence.size() == 0)
 			return new Tree<String>("ROOT");
 		if (!noPreparse)
@@ -1317,18 +1354,64 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
             }
         }
 
-		grammar = curGrammar;
-		lexicon = curLexicon;
-		if (score != Double.NEGATIVE_INFINITY) {
-			if (viterbiParse)
-				bestTree = extractBestViterbiParse(0, 0, 0, length, sentence);
-			else {
-				bestTree = extractBestMaxRuleParse(0, length, sentence);
-				savedScore = maxcScore[0][length][0];
-			}
-		}
+        if (candidates_spans != null) {
+            grammar = curGrammar;
+            lexicon = curLexicon;
+            //if (score != Double.NEGATIVE_INFINITY) {
+            if (viterbiParse) {
+                bestTree = extractBestViterbiParse(0, 0, 0, length, sentence);
+            } else {
+                bestTree = extractBestMaxRuleParse(0, length, sentence);
+                savedScore = maxcScore[0][length][0];
 
-		// sentencesParsed++;
+                for (int i = 0; i < spans.get(sentencesParsed).size(); i++) {
+                    Span span = spans.get(sentencesParsed).get(i);
+                    Double max_score = -1 * Double.POSITIVE_INFINITY;
+                    Tree<String> my_tree = null;
+                    for (int state = 0; state < numStates; state++) {
+                        String stateStr = (String) n.object(state);
+                        if (stateStr.startsWith("@")) {
+                            continue;
+                        }
+                        Tree<String> tree = extractBestMaxRuleParse1(span.b, span.e, state, sentence);
+                        Double cur_score = maxcScore[span.b][span.e][state];
+                        if ((cur_score > -1 * Double.POSITIVE_INFINITY) && (cur_score > max_score)) {
+                            my_tree = tree;
+                            max_score = cur_score;
+
+                        }
+                    }
+                    if (my_tree != null) {
+                        Tree<String> debinarizedTree = Trees.spliceNodes(my_tree,
+                                new Filter<String>() {
+                                    public boolean accept(String s) {
+                                        return s.startsWith("@") && !s.equals("@");
+                                    }
+                                }
+                        );
+                        //outputData.write(sentencesParsed+"\t"+span.b+"\t"+span.e+"\t"+my_tree.toString() + "\t"+ max_score +"\n");
+                        outputData.write(debinarizedTree.toString() + "\n");
+                    } else {
+                        outputData.write("\n");
+                    }
+                }
+                savedScore = maxcScore[0][length][0];
+                //	}
+            }
+        }
+
+		// grammar = curGrammar;
+		// lexicon = curLexicon;
+		// if (score != Double.NEGATIVE_INFINITY) {
+		// 	if (viterbiParse)
+		// 		bestTree = extractBestViterbiParse(0, 0, 0, length, sentence);
+		// 	else {
+		// 		bestTree = extractBestMaxRuleParse(0, length, sentence);
+		// 		savedScore = maxcScore[0][length][0];
+		// 	}
+		// }
+
+		sentencesParsed++;
 		// System.out.println("For parsing "+sentencesParsed+" I hat to touch "+edgesTouched/((double)sentencesParsed)+" on average.");
 		return bestTree;
 	}

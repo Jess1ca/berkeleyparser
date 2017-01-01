@@ -41,6 +41,9 @@ public class BerkeleyParser {
 		@Option(name = "-ioprobs",  usage = "\n")
         public boolean ioprobs = false;
 
+        @Option(name = "-candidates_spans",  usage = "\n")
+        public String candidates_spans = null;
+
 		@Option(name = "-tokenize", usage = "Tokenize input first. (Default: false=text is already tokenized)")
 		public boolean tokenize = false;
 
@@ -158,12 +161,12 @@ public class BerkeleyParser {
 				parser = new CoarseToFineMaxRuleParser(grammar, lexicon,
 						threshold, -1, opts.viterbi, opts.substates,
 						opts.scores, opts.accurate, opts.variational, true,
-						true);
+						true, opts.candidates_spans);
 			else
 				parser = new CoarseToFineNBestParser(grammar, lexicon,
 						opts.kbest, threshold, -1, opts.viterbi,
 						opts.substates, opts.scores, opts.accurate,
-						opts.variational, false, true);
+						opts.variational, false, true, opts.candidates_spans);
 			parser.binarization = pData.getBinarization();
 		}
 
@@ -259,7 +262,7 @@ public class BerkeleyParser {
 						parsedTrees = new ArrayList<Tree<String>>();
 						Tree<String> parsedTree = parser
 								.getBestConstrainedParse(sentence, posTags,
-										null, outputData, opts.ioprobs);
+										null, outputData, opts.ioprobs, opts.candidates_spans);
 //						if (opts.goldPOS && parsedTree.getChildren().isEmpty()) { // parse
 //																					// error
 //																					// when

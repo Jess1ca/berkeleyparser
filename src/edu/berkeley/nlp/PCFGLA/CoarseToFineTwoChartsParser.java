@@ -37,7 +37,7 @@ public class CoarseToFineTwoChartsParser extends CoarseToFineMaxRuleParser {
 			double unaryPenalty, int endL, boolean viterbi, boolean sub,
 			boolean score, boolean accurate) {
 		super(gr, lex, unaryPenalty, endL, viterbi, sub, score, accurate,
-				false, false, true);
+				false, false, true, null);
 	}
 
 	@Override

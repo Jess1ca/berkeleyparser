@@ -74,7 +74,7 @@ public class SentenceSegmenter {
 
 		CoarseToFineMaxRuleParser parser = null;
 		parser = new CoarseToFineMaxRuleParser(grammar, lexicon, threshold, -1,
-				false, false, false, opts.accurate, false, true, true);
+				false, false, false, opts.accurate, false, true, true, null);
 		parser.binarization = pData.getBinarization();
 
 		try {
@@ -130,7 +130,7 @@ public class SentenceSegmenter {
 				}// break;
 
 				Tree<String> parsedTree = parser.getBestConstrainedParse(
-						sentence, posTags, null, null, false);
+						sentence, posTags, null, null, false, null);
 				double allLL = (parsedTree.getChildren().isEmpty()) ? Double.NEGATIVE_INFINITY
 						: parser.getLogLikelihood();
 				outputData.write(allLL + " ");

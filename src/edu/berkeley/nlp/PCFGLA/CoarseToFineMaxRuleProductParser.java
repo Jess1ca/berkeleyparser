@@ -1260,7 +1260,7 @@ public class CoarseToFineMaxRuleProductParser extends CoarseToFineMaxRuleParser 
 
 	@Override
 	public Tree<String> getBestParse(List<String> sentence) {
-		return getBestConstrainedParse(sentence, null, false, null, false);
+		return null; //getBestConstrainedParse(sentence, null, false, null, false);
 	}
 
 	@Override
@@ -1309,7 +1309,7 @@ public class CoarseToFineMaxRuleProductParser extends CoarseToFineMaxRuleParser 
 
 	@Override
 	public Tree<String> getBestConstrainedParse(List<String> sentence,
-			List<String> posTags, boolean noPreparse, PrintWriter outputData, boolean ioprobs) {
+			List<String> posTags, boolean noPreparse, PrintWriter outputData, boolean ioprobs, String candidates_spans) {
 		if (sentence.size() == 0)
 			return new Tree<String>("ROOT");
 		if (!noPreparse)

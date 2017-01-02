@@ -919,7 +919,7 @@ public class ConstrainedTwoChartsParser extends ConstrainedArrayParser {
 
 	@Override
 	public Tree<String> getBestConstrainedParse(List<String> sentence,
-			List<String> posTags, boolean[][][][] allowedStates, PrintWriter outputData, boolean ioprobs) {
+			List<String> posTags, boolean[][][][] allowedStates, PrintWriter outputData, boolean ioprobs, String candidates_spans) {
 		// setConstraints(allowedStates,true);
 
 		boolean noSmoothing = false;

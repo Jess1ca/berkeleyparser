@@ -320,7 +320,7 @@ public class ConstrainedArrayParser extends ArrayParser implements Callable {
 	}
 
 	public Tree<String> getBestConstrainedParse(List<String> sentence,
-			List<String> posTags, boolean[][][][] allowedS, PrintWriter outputData, boolean ioprobs) {// List<Integer>[][]
+			List<String> posTags, boolean[][][][] allowedS, PrintWriter outputData, boolean ioprobs, String candidates_spans) {// List<Integer>[][]
 																// pStates) {
 		return getBestConstrainedParse(sentence, posTags);
 	}

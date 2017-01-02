@@ -36,9 +36,9 @@ public class CoarseToFineNBestParser extends CoarseToFineMaxRuleParser {
 	public CoarseToFineNBestParser(Grammar gr, Lexicon lex, int k,
 			double unaryPenalty, int endL, boolean viterbi, boolean sub,
 			boolean score, boolean accurate, boolean variational,
-			boolean useGoldPOS, boolean initCascade) {
+			boolean useGoldPOS, boolean initCascade, String candidates_spans) {
 		super(gr, lex, unaryPenalty, endL, viterbi, sub, score, accurate,
-				variational, useGoldPOS, initCascade);
+				variational, useGoldPOS, initCascade, candidates_spans);
 		this.k = k;
 	}
 
@@ -727,7 +727,7 @@ public class CoarseToFineNBestParser extends CoarseToFineMaxRuleParser {
 		CoarseToFineNBestParser newParser = new CoarseToFineNBestParser(
 				grammar, lexicon, k, unaryPenalty, endLevel, viterbiParse,
 				outputSub, outputScore, accurate, this.doVariational,
-				useGoldPOS, false);
+				useGoldPOS, false, null);
 		newParser.initCascade(this);
 		return newParser;
 	}

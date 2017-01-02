@@ -118,7 +118,7 @@ public class TreeLabeler {
 		this.lexicon.logarithmMode();
 		this.labeler = new ArrayParser(this.grammar, this.lexicon);
 		this.parser = new CoarseToFineMaxRuleParser(grammar, lexicon, 1, -1,
-				true, false, false, false, false, false, true);
+				true, false, false, false, false, false, true, null);
 		this.tagNumberer = Numberer.getGlobalNumberer("tags");
 		this.binarization = bin;
 	}

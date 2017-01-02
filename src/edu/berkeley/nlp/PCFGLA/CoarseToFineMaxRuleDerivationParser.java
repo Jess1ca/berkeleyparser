@@ -32,9 +32,9 @@ public class CoarseToFineMaxRuleDerivationParser extends
 	public CoarseToFineMaxRuleDerivationParser(Grammar gr, Lexicon lex,
 			double unaryPenalty, int endL, boolean viterbi, boolean sub,
 			boolean score, boolean accurate, boolean variational,
-			boolean useGoldPOS, boolean initializeCascade) {
+			boolean useGoldPOS, boolean initializeCascade, String candidates_spans) {
 		super(gr, lex, unaryPenalty, endL, viterbi, sub, score, accurate,
-				variational, useGoldPOS, initializeCascade);
+				variational, useGoldPOS, initializeCascade, candidates_spans);
 	}
 
 	@Override

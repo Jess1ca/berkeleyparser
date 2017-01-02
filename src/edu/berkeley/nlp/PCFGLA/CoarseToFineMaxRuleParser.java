@@ -22,6 +22,8 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.File;
+import edu.berkeley.nlp.util.Filter;
+import edu.berkeley.nlp.syntax.Trees;
 
 /**
  * 
@@ -104,6 +106,17 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 		candidates_spans = null;
 	}
 
+    private class Span {
+        int b;
+        int e;
+        Double score ;
+
+        public Span(int b, int e){
+            this.b = b;
+            this.e = e;
+        }
+    }
+
 	public CoarseToFineMaxRuleParser(Grammar gr, Lexicon lex,
 			double unaryPenalty, int endL, boolean viterbi, boolean sub,
 			boolean score, boolean accurate, boolean variational,
@@ -167,13 +180,17 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
             BufferedReader br = new BufferedReader(new FileReader(file));
 
             String line = null;
+            int max_key = -1;
 
             while ((line = br.readLine()) != null) {
                 String[] arr = line.split("\t");
                 Span span = new Span(Integer.parseInt(arr[2]),Integer.parseInt(arr[3]));
                 int sent_id = Integer.parseInt(arr[0]);
-                if (sent_id <= this.spans.size()){
-                    this.spans.add(sent_id, new ArrayList<Span>());
+                if (sent_id > max_key){
+                    for (int i=max_key+1; i<=sent_id; i++){
+                        this.spans.add(i, new ArrayList<Span>());
+                        max_key = i;
+                    }
                 }
                 this.spans.get(sent_id).add(span);
             }
@@ -1193,7 +1210,7 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 
 	@Override
 	public Tree<String> getBestParse(List<String> sentence) {
-		return getBestConstrainedParse(sentence, null, false, null, false);
+		return null; //getBestConstrainedParse(sentence, null, false, null, false);
 	}
 
 	public double getLogInsideScore() {
@@ -1245,8 +1262,10 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 
 	public Tree<String> getBestConstrainedParse(List<String> sentence,
 			List<String> posTags, boolean noPreparse, PrintWriter outputData, boolean ioprobs, String candidates_spans) {
-		if (sentence.size() == 0)
-			return new Tree<String>("ROOT");
+		if (sentence.size() == 0) {
+            sentencesParsed++;
+            return new Tree<String>("ROOT");
+        }
 		if (!noPreparse)
 			doPreParses(sentence, null, false, posTags);
 		bestTree = new Tree<String>("ROOT");
@@ -1355,6 +1374,7 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
         }
 
         if (candidates_spans != null) {
+            Numberer n = Numberer.getGlobalNumberer("tags");
             grammar = curGrammar;
             lexicon = curLexicon;
             //if (score != Double.NEGATIVE_INFINITY) {
@@ -1373,6 +1393,8 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
                         if (stateStr.startsWith("@")) {
                             continue;
                         }
+                        System.err.println(sentencesParsed);
+                        System.err.println(sentence);
                         Tree<String> tree = extractBestMaxRuleParse1(span.b, span.e, state, sentence);
                         Double cur_score = maxcScore[span.b][span.e][state];
                         if ((cur_score > -1 * Double.POSITIVE_INFINITY) && (cur_score > max_score)) {
@@ -3535,7 +3557,7 @@ public class CoarseToFineMaxRuleParser extends ConstrainedArrayParser {
 		CoarseToFineMaxRuleParser newParser = new CoarseToFineMaxRuleParser(
 				grammar, lexicon, unaryPenalty, endLevel, viterbiParse,
 				outputSub, outputScore, accurate, this.doVariational,
-				useGoldPOS, false);
+				useGoldPOS, false, candidates_spans);
 		newParser.initCascade(this);
 		return newParser;
 	}

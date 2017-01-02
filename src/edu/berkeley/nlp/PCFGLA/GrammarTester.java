@@ -336,7 +336,7 @@ public class GrammarTester implements Callable {
 					parser = new CoarseToFineNBestParser(grammar, lexicon,
 							opts.k, opts.unaryPenalty, finalLevel,
 							viterbiParse, false, false, opts.accurate,
-							doVariational, useGoldPOS, true);
+							doVariational, useGoldPOS, true, null);
 					tmpEval = new EnglishPennTreebankParseEvaluator.LabeledConstituentEval<String>(
 							Collections.singleton("ROOT"), new HashSet<String>(
 									Arrays.asList(new String[] { "''", "``",
@@ -345,12 +345,12 @@ public class GrammarTester implements Callable {
 					parser = new CoarseToFineMaxRuleDerivationParser(grammar,
 							lexicon, opts.unaryPenalty, finalLevel,
 							viterbiParse, false, false, opts.accurate,
-							doVariational, useGoldPOS, true);
+							doVariational, useGoldPOS, true, null);
 				} else
 					parser = new CoarseToFineMaxRuleParser(grammar, lexicon,
 							opts.unaryPenalty, finalLevel, viterbiParse, false,
 							false, opts.accurate, doVariational, useGoldPOS,
-							true);
+							true, null);
 				parser.binarization = pData.getBinarization();
 
 			}
@@ -517,7 +517,7 @@ public class GrammarTester implements Callable {
 						parsedTree = new Tree<String>("ROOT");
 				} else {
 					parsedTree = parser.getBestConstrainedParse(testSentence,
-							posTags, allowedStates, null, false);
+							posTags, allowedStates, null, false, null);
 					if (opts.verbose)
 						System.out.println("Annotated result:\n"
 								+ Trees.PennTreeRenderer.render(parsedTree));
@@ -532,7 +532,7 @@ public class GrammarTester implements Callable {
 																			// try
 																			// without
 						parsedTree = parser.getBestConstrainedParse(
-								testSentence, null, allowedStates, null, false);
+								testSentence, null, allowedStates, null, false, null);
 						parsedTree = TreeAnnotations.unAnnotateTree(parsedTree,
 								false);
 					}
@@ -858,7 +858,7 @@ public class GrammarTester implements Callable {
 			Tree<String> parsedTree = null;
 			boolean[][][][] con = (cons == null) ? null : cons[i];
 			parsedTree = parser
-					.getBestConstrainedParse(testSentence, null, con, null, false);
+					.getBestConstrainedParse(testSentence, null, con, null, false, null);
 			parsedTree = TreeAnnotations.unAnnotateTree(parsedTree, false);
 
 			eval.evaluate(parsedTree, testTree, false);

@@ -79,7 +79,7 @@ public class PosteriorMerger {
 
 		CoarseToFineMaxRuleParser parser = new CoarseToFineMaxRuleParser(
 				grammars[0], lexicons[0], 1.0, -1, false, false, false, true,
-				false, false, false);
+				false, false, false, null);
 
 		try {
 			BufferedReader inputData = (opts.inputFile == null) ? new BufferedReader(

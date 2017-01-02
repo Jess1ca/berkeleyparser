@@ -3,7 +3,7 @@ This code changes Berkeley Parser to retrives on parsing the computed Inside-Out
 The complied jar is in "out" folder.
 
 Command:
-java -classpath .:out/berkeleyparser.jar:org.json-20120521.jar edu.berkeley.nlp.PCFGLA.BerkeleyParser -gr <grammar> -inputFile <sentences> -ioprobs
+java -classpath .:out/BerkeleyParser.jar:org.json-20120521.jar edu.berkeley.nlp.PCFGLA.BerkeleyParser -gr <grammar> -inputFile <sentences> -ioprobs
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
